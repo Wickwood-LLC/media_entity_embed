@@ -58,5 +58,9 @@ class MediaMimeMapping extends ConfigEntityBase implements MediaMimeMappingInter
     $this->mime_types = $mime_types;
     return $this;
   }
+
+  public function containsMimeType($mime_type) {
+    return in_array($mime_type, $this->mime_types);
+  }
 }
 
