@@ -1,0 +1,31 @@
+entity.media_mime_mapping.collection:
+  path: '/admin/config/media/mime-mapping'
+  defaults:
+    _entity_list: 'media_mime_mapping'
+    _title: 'Media Mime Mapping Configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.media_mime_mapping.add_form:
+  path: '/admin/config/media/mime-mapping/add'
+  defaults:
+    _entity_form: 'media_mime_mapping.add'
+    _title: 'Add media mime mapping'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.media_mime_mapping.edit_form:
+  path: '/admin/config/media/mime-mapping/{media_mime_mapping}'
+  defaults:
+    _entity_form: 'media_mime_mapping.edit'
+    _title: 'Edit media mime mapping'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.media_mime_mapping.delete_form:
+  path: '/admin/config/media/mime-mapping/{media_mime_mapping}/delete'
+  defaults:
+    _entity_form: 'media_mime_mapping.delete'
+    _title: 'Delete media mime mapping'
+  requirements:
+    _permission: 'administer site configuration'

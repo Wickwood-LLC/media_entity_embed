@@ -1,0 +1,12 @@
+media_entity_embed.media_mime_mapping.*:
+  type: config_entity
+  label: 'Media Mime Type Mapping'
+  mapping:
+    id:
+      type: string
+      label: 'Media type'
+    mime_types:
+      type: sequence
+      label: 'Mime types'
+      sequence:
+        type: string
