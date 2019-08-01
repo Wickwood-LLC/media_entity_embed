@@ -91,9 +91,8 @@ class MediaUpload extends WidgetBase {
       'extensions' => 'jpg jpeg png gif',
       'media_type' => NULL,
       'upload_location' => 'public://',
-      'multiple' => TRUE,
       'first_step_button_text' => $this->t('Create media items'),
-      'second_step_button_text' => $this->t('Save and continue'),
+      'submit_text' => $this->t('Save and continue'),
       'extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp',
     ] + parent::defaultConfiguration();
   }
@@ -119,7 +118,6 @@ class MediaUpload extends WidgetBase {
         ];
       }
 
-      $form['actions']['submit']['#value'] = $this->configuration['second_step_button_text'];
     }
     else {
       $field_cardinality = $form_state->get(['entity_browser', 'validators', 'cardinality', 'cardinality']);
@@ -129,9 +127,7 @@ class MediaUpload extends WidgetBase {
         '#title' => $this->t('Choose a file'),
         '#title_display' => 'invisible',
         '#upload_location' => $this->token->replace($this->configuration['upload_location']),
-        // Multiple uploads will only be accepted if the source field allows
-        // more than one value.
-        '#multiple' => $field_cardinality != 1 && $this->configuration['multiple'],
+        '#multiple' => FALSE,
         '#upload_validators' => array_merge([
           'file_validate_extensions' => [$this->configuration['extensions']],
         ], $upload_validators),
@@ -286,19 +282,13 @@ class MediaUpload extends WidgetBase {
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $form = parent::buildConfigurationForm($form, $form_state);
 
     $form['upload_location'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Upload location'),
       '#default_value' => $this->configuration['upload_location'],
     ];
-    $form['multiple'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Accept multiple files'),
-      '#default_value' => $this->configuration['multiple'],
-      '#description' => $this->t('Multiple uploads will only be accepted if the source field allows more than one value.'),
-    ];
+
     $form['extensions'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Allowed file extensions'),
@@ -315,6 +305,15 @@ class MediaUpload extends WidgetBase {
       ];
       $form['upload_location']['#description'] = $this->t('You can use tokens in the upload location.');
     }
+
+    $form['first_step_button_text'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Upload step button text'),
+      '#default_value' => $this->configuration['first_step_button_text'],
+      '#required' => TRUE,
+    ];
+
+    $form += parent::buildConfigurationForm($form, $form_state);
 
     return $form;
   }
