@@ -331,11 +331,9 @@ class MediaUpload extends WidgetBase {
       ->loadMultiple();
 
     foreach ($media_types as $media_type) {
-      $source_field_name = $media_type->getSource()->getConfiguration()['source_field'];
-      if ($source_field_name) {
-        $bundle_fields = \Drupal::getContainer()->get('entity_field.manager')->getFieldDefinitions('media', $media_type->id());
-        $field_definition = $bundle_fields[$source_field_name];
-        $extensions = $field_definition->getSetting('file_extensions');
+      $source_field_definition = $this->getSourceFieldDefinitionForMediaType($media_type);
+      if ($source_field_definition) {
+        $extensions = $source_field_definition->getSetting('file_extensions');
         if (!empty($extensions)) {
           $media_type_options[$media_type->id()] = $media_type->label();
         }
@@ -344,17 +342,33 @@ class MediaUpload extends WidgetBase {
     return $media_type_options;
   }
 
+  /**
+   * Function helping to determine allowed file extension based on selected media types.
+   * @return array $file_extensions
+   *   Array of file extensions.
+   */
   protected function getAllowedFileExtensions() {
     $file_extensions = [];
     $media_types = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple(array_keys(array_filter($this->configuration['media_types'])));
     foreach ($media_types as $media_type) {
-      $source_field_name = $media_type->getSource()->getConfiguration()['source_field'];
-      if ($source_field_name) {
-        $bundle_fields = \Drupal::getContainer()->get('entity_field.manager')->getFieldDefinitions('media', $media_type->id());
-        $field_definition = $bundle_fields[$source_field_name];
-        $file_extensions = array_merge($file_extensions, explode(' ', $field_definition->getSetting('file_extensions')));
+      $source_field_definition = $this->getSourceFieldDefinitionForMediaType($media_type);
+      if ($source_field_definition) {
+        $file_extensions = array_merge($file_extensions, explode(' ', $source_field_definition->getSetting('file_extensions')));
       }
     }
     return $file_extensions;
+  }
+
+  /**
+   * Static helper function to load source field for give media type.
+   * @param \Drupal\media\Entity\MediaType $media_type
+   * @return \Drupal\field\Entity\FieldConfig
+   */
+  public static function getSourceFieldDefinitionForMediaType($media_type) {
+    $source_field_name = $media_type->getSource()->getConfiguration()['source_field'];
+    if ($source_field_name) {
+      $bundle_fields = \Drupal::getContainer()->get('entity_field.manager')->getFieldDefinitions('media', $media_type->id());
+      return $bundle_fields[$source_field_name];
+    }
   }
 }
