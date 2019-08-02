@@ -88,12 +88,10 @@ class MediaUpload extends WidgetBase {
    */
   public function defaultConfiguration() {
     return [
-      'extensions' => 'jpg jpeg png gif',
-      'media_type' => NULL,
       'upload_location' => 'public://',
       'first_step_button_text' => $this->t('Create media items'),
       'submit_text' => $this->t('Save and continue'),
-      'extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp',
+      'media_types' => array(),
     ] + parent::defaultConfiguration();
   }
 
@@ -114,7 +112,7 @@ class MediaUpload extends WidgetBase {
           '#entity_type' => $entity->getEntityTypeId(),
           '#bundle' => $entity->bundle(),
           '#default_value' => $entity,
-          '#form_mode' => $this->configuration['form_mode'],
+          '#form_mode' => 'default',
         ];
       }
 
@@ -129,7 +127,7 @@ class MediaUpload extends WidgetBase {
         '#upload_location' => $this->token->replace($this->configuration['upload_location']),
         '#multiple' => FALSE,
         '#upload_validators' => array_merge([
-          'file_validate_extensions' => [$this->configuration['extensions']],
+          'file_validate_extensions' => [$this->getAllowedFileExtensions()],
         ], $upload_validators),
       ];
 
@@ -289,12 +287,14 @@ class MediaUpload extends WidgetBase {
       '#default_value' => $this->configuration['upload_location'],
     ];
 
-    $form['extensions'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Allowed file extensions'),
-      '#description' => $this->t('Separate extensions with a space or comma and do not include the leading dot.'),
-      '#default_value' => $this->configuration['extensions'],
-      '#element_validate' => [[static::class, 'validateExtensions']],
+    $media_type_options = $this->getMediaTypeOptions();
+
+    $form['media_types'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Media types'),
+      '#description' => $this->t('Select one or more media types. Only files with extensions configured in source fields of selected media types are allowed to upload.'),
+      '#default_value' => !empty($this->configuration['media_types']) ? $this->configuration['media_types'] : array(),
+      '#options' => $media_type_options,
       '#required' => TRUE,
     ];
 
@@ -318,4 +318,43 @@ class MediaUpload extends WidgetBase {
     return $form;
   }
 
+  /**
+   * Get media type options to give for configuration.
+   * @return array media_type_options
+   *   Array of media types. Ids as keys and labels as values.
+   */
+  protected function getMediaTypeOptions() {
+    $media_type_options = [];
+    $media_types = $this
+      ->entityTypeManager
+      ->getStorage('media_type')
+      ->loadMultiple();
+
+    foreach ($media_types as $media_type) {
+      $source_field_name = $media_type->getSource()->getConfiguration()['source_field'];
+      if ($source_field_name) {
+        $bundle_fields = \Drupal::getContainer()->get('entity_field.manager')->getFieldDefinitions('media', $media_type->id());
+        $field_definition = $bundle_fields[$source_field_name];
+        $extensions = $field_definition->getSetting('file_extensions');
+        if (!empty($extensions)) {
+          $media_type_options[$media_type->id()] = $media_type->label();
+        }
+      }
+    }
+    return $media_type_options;
+  }
+
+  protected function getAllowedFileExtensions() {
+    $file_extensions = [];
+    $media_types = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple(array_keys(array_filter($this->configuration['media_types'])));
+    foreach ($media_types as $media_type) {
+      $source_field_name = $media_type->getSource()->getConfiguration()['source_field'];
+      if ($source_field_name) {
+        $bundle_fields = \Drupal::getContainer()->get('entity_field.manager')->getFieldDefinitions('media', $media_type->id());
+        $field_definition = $bundle_fields[$source_field_name];
+        $file_extensions = array_merge($file_extensions, explode(' ', $field_definition->getSetting('file_extensions')));
+      }
+    }
+    return $file_extensions;
+  }
 }
