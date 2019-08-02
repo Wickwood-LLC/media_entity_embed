@@ -287,6 +287,14 @@ class MediaUpload extends WidgetBase {
       '#default_value' => $this->configuration['upload_location'],
     ];
 
+    if ($this->moduleHandler->moduleExists('token')) {
+      $form['token_help'] = [
+        '#theme' => 'token_tree_link',
+        '#token_types' => ['file'],
+      ];
+      $form['upload_location']['#description'] = $this->t('You can use tokens in the upload location.');
+    }
+
     $media_type_options = $this->getMediaTypeOptions();
 
     $form['media_types'] = [
@@ -297,14 +305,6 @@ class MediaUpload extends WidgetBase {
       '#options' => $media_type_options,
       '#required' => TRUE,
     ];
-
-    if ($this->moduleHandler->moduleExists('token')) {
-      $form['token_help'] = [
-        '#theme' => 'token_tree_link',
-        '#token_types' => ['file'],
-      ];
-      $form['upload_location']['#description'] = $this->t('You can use tokens in the upload location.');
-    }
 
     $form['first_step_button_text'] = [
       '#type' => 'textfield',
