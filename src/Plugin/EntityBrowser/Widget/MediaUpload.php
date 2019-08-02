@@ -127,7 +127,7 @@ class MediaUpload extends WidgetBase {
         '#upload_location' => $this->token->replace($this->configuration['upload_location']),
         '#multiple' => FALSE,
         '#upload_validators' => array_merge([
-          'file_validate_extensions' => [$this->getAllowedFileExtensions()],
+          'file_validate_extensions' => [implode(' ', $this->getAllowedFileExtensions())],
         ], $upload_validators),
       ];
 
