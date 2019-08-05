@@ -21,7 +21,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * @EntityBrowserWidget(
  *   id = "media_entity_embed_media_upload",
  *   label = @Translation("Upload media files (MEE)"),
- *   description = @Translation("Upload widget that will create media entities automatically by mapping mime type of the uploaded files."),
+ *   description = @Translation("Upload widget that will create media entities automatically by file extensions of the uploaded files."),
  *   auto_select = FALSE
  * )
  */
@@ -161,24 +161,27 @@ class MediaUpload extends WidgetBase {
 
     $media_items = [];
     foreach ($files as $file) {
-      $media_type = NULL;
-      $mime_type = $file->getMimeType();
-      $media_mime_mappings = $this->entityTypeManager->getStorage('media_mime_mapping')->loadMultiple();
+      /** @var \Drupal\media\MediaTypeInterface $media_type */
+      $matched_media_type = NULL;
 
-      foreach ($media_mime_mappings as $media_mime_mapping) {
-        if ($media_mime_mapping->containsMimeType($mime_type)) {
-          /** @var \Drupal\media\MediaTypeInterface $media_type */
-          $media_type = $this->entityTypeManager
-            ->getStorage('media_type')
-            ->load($media_mime_mapping->id());
-          break;
+      $media_types = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple(array_keys(array_filter($this->configuration['media_types'])));
+      foreach ($media_types as $media_type) {
+        $source_field_definition = $this->getSourceFieldDefinitionForMediaType($media_type);
+        if ($source_field_definition) {
+          $file_extensions = $source_field_definition->getSetting('file_extensions');
+          // file_validate_extensions() will return empty array if file extension matches
+          if (empty(file_validate_extensions($file, $file_extensions))) {
+            $matched_media_type = $media_type;
+            break;
+          }
         }
       }
-      if (!empty($media_type)) {
+
+      if (!empty($matched_media_type)) {
         /** @var \Drupal\media\MediaInterface $image */
         $media = $this->entityTypeManager->getStorage('media')->create([
-          'bundle' => $media_type->id(),
-          $media_type->getSource()->getConfiguration()['source_field'] => $file,
+          'bundle' => $matched_media_type->id(),
+          $matched_media_type->getSource()->getConfiguration()['source_field'] => $file,
         ]);
         $media_items[] = $media;
       }
