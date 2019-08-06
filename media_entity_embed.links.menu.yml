@@ -1,5 +1,0 @@
-entity.media_mime_mapping.collection:
-  title: 'Media Mime Mapping'
-  parent: system.admin_config_media
-  description: 'Configure media mime mapping'
-  route_name: entity.media_mime_mapping.collection

@@ -1,5 +1,0 @@
-entity.media_mime_mapping.add_form:
-  route_name: 'entity.media_mime_mapping.add_form'
-  title: 'Add media mime mapping'
-  appears_on:
-    - entity.media_mime_mapping.collection
