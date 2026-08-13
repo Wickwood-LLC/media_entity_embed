@@ -118,9 +118,7 @@ class MediaUpload extends WidgetBase {
 
     }
     else {
-      $field_cardinality = $form_state->get(['entity_browser', 'validators', 'cardinality', 'cardinality']);
       $upload_validators = $form_state->has(['entity_browser', 'widget_context', 'upload_validators']) ? $form_state->get(['entity_browser', 'widget_context', 'upload_validators']) : [];
-      $extensions = $this->getAllowedFileExtensions();
       $form['upload'] = [
         '#type' => 'managed_file',
         '#title' => $this->t('Choose a file'),
