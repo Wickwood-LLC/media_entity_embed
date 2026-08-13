@@ -120,6 +120,7 @@ class MediaUpload extends WidgetBase {
     else {
       $field_cardinality = $form_state->get(['entity_browser', 'validators', 'cardinality', 'cardinality']);
       $upload_validators = $form_state->has(['entity_browser', 'widget_context', 'upload_validators']) ? $form_state->get(['entity_browser', 'widget_context', 'upload_validators']) : [];
+      $extensions = $this->getAllowedFileExtensions();
       $form['upload'] = [
         '#type' => 'managed_file',
         '#title' => $this->t('Choose a file'),
@@ -127,7 +128,9 @@ class MediaUpload extends WidgetBase {
         '#upload_location' => $this->token->replace($this->configuration['upload_location']),
         '#multiple' => FALSE,
         '#upload_validators' => array_merge([
-          'file_validate_extensions' => [implode(' ', $this->getAllowedFileExtensions())],
+          'FileExtension' => [
+            'extensions' => implode(' ', $this->getAllowedFileExtensions()),
+          ]
         ], $upload_validators),
       ];
 
@@ -154,6 +157,8 @@ class MediaUpload extends WidgetBase {
    * {@inheritdoc}
    */
   protected function prepareEntities(array $form, FormStateInterface $form_state) {
+    $file_validator = \Drupal::service('file.validator');
+
     $files = [];
     foreach ($form_state->getValue(['upload'], []) as $fid) {
       $files[] = $this->entityTypeManager->getStorage('file')->load($fid);
@@ -169,8 +174,11 @@ class MediaUpload extends WidgetBase {
         $source_field_definition = $this->getSourceFieldDefinitionForMediaType($media_type);
         if ($source_field_definition) {
           $file_extensions = $source_field_definition->getSetting('file_extensions');
-          // file_validate_extensions() will return empty array if file extension matches
-          if (empty(file_validate_extensions($file, $file_extensions))) {
+          $violations = $file_validator->validate($file, [
+            'FileExtension' => ['extensions' => $file_extensions],
+          ]);
+          // Check number of violations.
+          if (count($violations) === 0) {
             $matched_media_type = $media_type;
             break;
           }
@@ -179,6 +187,7 @@ class MediaUpload extends WidgetBase {
 
       if (!empty($matched_media_type)) {
         /** @var \Drupal\media\MediaInterface $image */
+        /** @var \Drupal\media\Entity\MediaType $matched_media_type */
         $media = $this->entityTypeManager->getStorage('media')->create([
           'bundle' => $matched_media_type->id(),
           $matched_media_type->getSource()->getConfiguration()['source_field'] => $file,
