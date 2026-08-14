@@ -34,6 +34,8 @@ class FormHooks {
           '#type' => 'text_format',
           '#rows' => 3,
           '#default_value' => $caption,
+          // Text format used here should only allow hardcoded tags in
+          // \Drupal\filter\Plugin\Filter\FilterCaption::process().
           '#format' => 'caption_html',
           '#allowed_formats' => ['caption_html'],
         ];
@@ -51,6 +53,7 @@ class FormHooks {
   public static function validateEntityEmbedDialog(array &$form, FormStateInterface $form_state) {
     if (isset($form['attributes']['data-caption-editor'])) {
       $caption_value = $form_state->getValue(['attributes', 'data-caption-editor', 'value']);
+      // Copy as original data-caption attribute value.
       $form_state->setValue(['attributes', 'data-caption'], $caption_value);
     }
   }
