@@ -29,6 +29,11 @@ class FormHooks {
         if ($form['attributes']['data-caption']['#type'] != 'value') {
           $form['attributes']['data-caption']['#type'] = 'value';
         }
+        if (empty($caption) && empty($storage['entity_element']['data-entity-embed-display-settings'])) {
+          // Display settings is empty means new embedding, not editing existing one.
+          // Copy value from Long Caption field as default caption.
+          $caption = $storage['entity']->get('field_long_caption')->value;
+        }
         $form['attributes']['data-caption-editor'] = [
           '#title' => $this->t('Caption'),
           '#type' => 'text_format',
