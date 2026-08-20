@@ -38,6 +38,12 @@ class FormHooks {
           // \Drupal\filter\Plugin\Filter\FilterCaption::process().
           '#format' => 'caption_html',
           '#allowed_formats' => ['caption_html'],
+          '#attached' => [
+            'library' => [
+              // Remove this once https://www.drupal.org/project/drupal/issues/3351603 is solved
+              'media_entity_embed/ckeditor-fix',
+            ]
+          ]
         ];
 
         // Make sure to initialize array if not.

@@ -1,0 +1,5 @@
+# Remove this once https://www.drupal.org/project/drupal/issues/3351603 is solved
+ckeditor-fix:
+  css:
+    theme:
+      css/ckeditor-fix.css: {}
